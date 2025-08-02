@@ -15,10 +15,18 @@ model Campaign {
     id          String   @id @default(cuid())
     campaignId  String   @unique // Meta Ads campaign ID
     name        String
+
+    // Available metrics from API
     spend       Float
-    ctr         Float
-    roas        Float
+    clicks      Int
+    reach       Int
     impressions Int
+    inlineLinkClicks Int
+    costPerInlineLinkClick Float
+    frequency   Float
+    cpc         Float
+    ctr         Float // Available from API
+
     syncedAt    DateTime @default(now())
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
@@ -34,8 +42,8 @@ model AutomationRule {
     description String?
     isActive    Boolean  @default(true)
 
-    // Rule conditions
-    metric      String   // "spend", "ctr", "roas", "impressions"
+    // Rule conditions - only use available metrics
+    metric      String   // "spend", "clicks", "reach", "impressions", "inlineLinkClicks", "costPerInlineLinkClick", "frequency", "cpc", "ctr"
     operator    String   // "gt", "lt", "eq", "gte", "lte"
     threshold   Float
 
@@ -75,11 +83,16 @@ model ActionLog {
     campaignId String
     campaign   Campaign @relation(fields: [campaignId], references: [id])
 
-    // Metrics at trigger time
+    // Metrics at trigger time - only available metrics
     spend       Float
-    ctr         Float
-    roas        Float
+    clicks      Int
+    reach       Int
     impressions Int
+    inlineLinkClicks Int
+    costPerInlineLinkClick Float
+    frequency   Float
+    cpc         Float
+    ctr         Float
 
     // Timestamps
     triggeredAt DateTime @default(now())

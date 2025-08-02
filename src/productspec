@@ -6,8 +6,8 @@
 
 Build a minimal web platform that allows a user to:
 
-- Monitor a Meta Ads campaign’s performance
-- Set automation rules based on metrics like Spend, CTR, and ROAS
+- Monitor a Meta Ads campaign's performance
+- Set automation rules based on metrics like Spend, CTR, and Reach
 - Log mock actions when rules are triggered
 
 Uses the provided Meta Ads API proxy.
@@ -22,7 +22,7 @@ Uses the provided Meta Ads API proxy.
 Display real-time metrics for the campaign, synced from the Meta Ads API proxy.
 
 #### Components:
-- `CampaignMetricsCard` – Display individual KPIs (spend, CTR, ROAS, etc.)
+- `CampaignMetricsCard` – Display individual KPIs (spend, CTR, clicks, reach, impressions, etc.)
 - `LastSynced` – Show last time data was fetched
 - `SyncButton` – Optional manual refresh
 
@@ -56,5 +56,33 @@ Create and manage automation rules that trigger mock actions.
 - Returns latest campaign metrics from DB
 
 ### `POST /api/sync`
-- Fetch insights from:
-GET https://dev-api.adcopy.ai/challenge-proxy/meta/120231398059670228/insights?fields=spend,ctr,roas,impressions
+- Fetch insights from Meta Ads API proxy:
+```
+GET https://dev-api.adcopy.ai/challenge-proxy/meta/120231398059670228/insights?fields=inline_link_clicks,cost_per_inline_link_click,reach,frequency,cpc,spend,clicks,impressions,ctr
+```
+
+#### Available Metrics:
+- `spend` - Total campaign spend
+- `clicks` - Total clicks
+- `reach` - Total reach
+- `impressions` - Total impressions
+- `inline_link_clicks` - Link clicks
+- `cost_per_inline_link_click` - Cost per link click
+- `frequency` - Ad frequency
+- `cpc` - Cost per click
+- `ctr` - Click-through rate (from API)
+
+#### Automation Rules Supported:
+- **Spend** - Monitor total campaign spend
+- **Clicks** - Monitor total clicks
+- **Reach** - Monitor total reach
+- **Impressions** - Monitor total impressions
+- **CTR** - Monitor click-through rate
+- **CPC** - Monitor cost per click
+- **Frequency** - Monitor ad frequency
+- **Link Clicks** - Monitor inline link clicks
+- **Cost per Link Click** - Monitor cost per link click
+
+#### Authentication:
+- Requires `META_API_TOKEN` environment variable
+- Uses Bearer token authentication

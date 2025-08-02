@@ -1,4 +1,4 @@
-import { Home, FileText } from "lucide-react"
+import { Home, FileText, Settings, BarChart3 } from "lucide-react"
 
 import {
   Sidebar,
@@ -16,13 +16,18 @@ import {
 const items = [
   {
     title: "Dashboard",
-    url: "/",
-    icon: Home,
+    url: "/dashboard",
+    icon: BarChart3,
   },
   {
     title: "Posts",
     url: "/posts",
     icon: FileText,
+  },
+  {
+    title: "Automation",
+    url: "/automation",
+    icon: Settings,
   },
 ]
 
