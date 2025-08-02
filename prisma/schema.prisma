@@ -7,13 +7,90 @@ generator client {
 
 datasource db {
     provider = "postgresql"
-    // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-    // Further reading:
-    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
     url      = env("DATABASE_URL")
 }
 
+// Campaign metrics from Meta Ads API
+model Campaign {
+    id          String   @id @default(cuid())
+    campaignId  String   @unique // Meta Ads campaign ID
+    name        String
+    spend       Float
+    ctr         Float
+    roas        Float
+    impressions Int
+    syncedAt    DateTime @default(now())
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    // Relations
+    actionLogs  ActionLog[]
+}
+
+// Automation rules
+model AutomationRule {
+    id          String   @id @default(cuid())
+    name        String
+    description String?
+    isActive    Boolean  @default(true)
+
+    // Rule conditions
+    metric      String   // "spend", "ctr", "roas", "impressions"
+    operator    String   // "gt", "lt", "eq", "gte", "lte"
+    threshold   Float
+
+    // Rule actions
+    action      String   // "pause_campaign", "increase_budget", "decrease_budget", "send_notification"
+    actionValue String?  // Additional data for the action
+
+    // Tracking
+    lastTriggered DateTime?
+    triggerCount  Int      @default(0)
+
+    // Relations
+    createdBy   User   @relation(fields: [createdById], references: [id])
+    createdById String
+    actionLogs  ActionLog[]
+
+    // Timestamps
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    @@index([isActive])
+    @@index([metric])
+}
+
+// Action logs when rules are triggered
+model ActionLog {
+    id        String   @id @default(cuid())
+    ruleId    String
+    rule      AutomationRule @relation(fields: [ruleId], references: [id])
+
+    // Action details
+    action    String
+    actionValue String?
+    status    String   @default("pending") // "pending", "success", "failed"
+
+    // Context when triggered
+    campaignId String
+    campaign   Campaign @relation(fields: [campaignId], references: [id])
+
+    // Metrics at trigger time
+    spend       Float
+    ctr         Float
+    roas        Float
+    impressions Int
+
+    // Timestamps
+    triggeredAt DateTime @default(now())
+    completedAt DateTime?
+
+    @@index([ruleId])
+    @@index([status])
+    @@index([triggeredAt])
+}
+
+// Existing models for NextAuth.js
 model Post {
     id        Int      @id @default(autoincrement())
     name      String
@@ -26,7 +103,6 @@ model Post {
     @@index([name])
 }
 
-// Necessary for Next auth
 model Account {
     id                       String  @id @default(cuid())
     userId                   String
@@ -63,6 +139,7 @@ model User {
     accounts      Account[]
     sessions      Session[]
     posts         Post[]
+    automationRules AutomationRule[]
 }
 
 model VerificationToken {
