@@ -1,0 +1,60 @@
+# 🧠 AI-First Feature Spec: Koast Automation MVP
+
+---
+
+## 📌 Project Overview
+
+Build a minimal web platform that allows a user to:
+
+- Monitor a Meta Ads campaign’s performance
+- Set automation rules based on metrics like Spend, CTR, and ROAS
+- Log mock actions when rules are triggered
+
+Uses the provided Meta Ads API proxy.
+
+---
+
+## 🗂️ Pages
+
+### `/dashboard` — 📊 Campaign Highlights
+
+#### Purpose:
+Display real-time metrics for the campaign, synced from the Meta Ads API proxy.
+
+#### Components:
+- `CampaignMetricsCard` – Display individual KPIs (spend, CTR, ROAS, etc.)
+- `LastSynced` – Show last time data was fetched
+- `SyncButton` – Optional manual refresh
+
+#### Data Source:
+- `GET /api/campaigns` → pulls from DB
+- Cron job or manual `/api/sync` endpoint to update
+
+---
+
+### `/automation` — ⚙️ Rules Manager
+
+#### Purpose:
+Create and manage automation rules that trigger mock actions.
+
+#### Components:
+- `RuleList` – Table of rules (Name, Condition, Action, Last Triggered, Active?)
+- `CreateRuleDialog` – Modal/form to create new rule
+- `RuleToggle` – (optional) Enable/disable rule
+- `ActionLogTable` – List of all triggered mock actions
+
+#### Data Source:
+- `GET /api/rules`
+- `POST /api/rules`
+- `GET /api/actions`
+
+---
+
+## 🛠️ API Endpoints
+
+### `GET /api/campaigns`
+- Returns latest campaign metrics from DB
+
+### `POST /api/sync`
+- Fetch insights from:
+GET https://dev-api.adcopy.ai/challenge-proxy/meta/120231398059670228/insights?fields=spend,ctr,roas,impressions
