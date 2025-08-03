@@ -9,6 +9,7 @@ import { toast } from "sonner"
 
 export function AutomationHeader() {
   const [isRuleBuilderOpen, setIsRuleBuilderOpen] = useState(false)
+  const [editingRule, setEditingRule] = useState<any>(null)
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils()
@@ -19,9 +20,23 @@ export function AutomationHeader() {
       toast.success("Rule created successfully!")
       utils.automation.getRules.invalidate()
       setIsRuleBuilderOpen(false)
+      setEditingRule(null)
     },
     onError: (error) => {
       toast.error(`Failed to create rule: ${error.message}`)
+    },
+  })
+
+  // Update rule mutation
+  const updateRuleMutation = api.automation.updateRule.useMutation({
+    onSuccess: () => {
+      toast.success("Rule updated successfully!")
+      utils.automation.getRules.invalidate()
+      setIsRuleBuilderOpen(false)
+      setEditingRule(null)
+    },
+    onError: (error) => {
+      toast.error(`Failed to update rule: ${error.message}`)
     },
   })
 
@@ -32,7 +47,21 @@ export function AutomationHeader() {
     actionValue?: string
     conditionGroups: any[]
   }) => {
-    await createRuleMutation.mutateAsync(ruleData)
+    if (editingRule) {
+      // Update existing rule
+      await updateRuleMutation.mutateAsync({
+        id: editingRule.id,
+        ...ruleData,
+      })
+    } else {
+      // Create new rule
+      await createRuleMutation.mutateAsync(ruleData)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setIsRuleBuilderOpen(false)
+    setEditingRule(null)
   }
 
   return (
@@ -51,11 +80,18 @@ export function AutomationHeader() {
       </div>
 
       {isRuleBuilderOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={handleCancelEdit}
+        >
+          <div
+            className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <RuleBuilder
               onSave={handleSaveRule}
-              onCancel={() => setIsRuleBuilderOpen(false)}
+              onCancel={handleCancelEdit}
+              editingRule={editingRule}
             />
           </div>
         </div>

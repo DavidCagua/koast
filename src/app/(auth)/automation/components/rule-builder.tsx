@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
 import { Button } from "~/components/ui/button"
 import { Badge } from "~/components/ui/badge"
-import { Plus, GripVertical, X, Bell, Play, Pause } from "lucide-react"
+import { Plus, GripVertical, X, Bell } from "lucide-react"
 import { api } from "~/trpc/react"
 import { toast } from "sonner"
 
@@ -23,6 +23,26 @@ interface ConditionGroup {
   conditions: Condition[]
 }
 
+interface EditingRule {
+  id: string
+  name: string
+  description?: string
+  action: string
+  actionValue?: string
+  conditionGroups?: Array<{
+    id: string
+    operator: string
+    order: number
+    conditions: Array<{
+      id: string
+      metric: string
+      operator: string
+      threshold: number
+      order: number
+    }>
+  }>
+}
+
 interface RuleBuilderProps {
   onSave: (rule: {
     name: string
@@ -32,15 +52,36 @@ interface RuleBuilderProps {
     conditionGroups: ConditionGroup[]
   }) => void
   onCancel: () => void
+  editingRule?: EditingRule
 }
 
-export function RuleBuilder({ onSave, onCancel }: RuleBuilderProps) {
-  const [ruleName, setRuleName] = useState("")
-  const [ruleDescription, setRuleDescription] = useState("")
-  const [selectedAction, setSelectedAction] = useState("")
-  const [actionValue, setActionValue] = useState("")
-  const [conditionGroups, setConditionGroups] = useState<ConditionGroup[]>([
-    {
+export function RuleBuilder({ onSave, onCancel, editingRule }: RuleBuilderProps) {
+  const [ruleName, setRuleName] = useState(editingRule?.name ?? "")
+  const [ruleDescription, setRuleDescription] = useState(editingRule?.description ?? "")
+  const [selectedAction, setSelectedAction] = useState(editingRule?.action ?? "")
+  const [actionValue, setActionValue] = useState(editingRule?.actionValue ?? "")
+  const [conditionGroups, setConditionGroups] = useState<ConditionGroup[]>(() => {
+    if (editingRule?.conditionGroups && editingRule.conditionGroups.length > 0) {
+      return editingRule.conditionGroups.map((group, groupIndex) => ({
+        id: group.id ?? `group-${groupIndex}`,
+        operator: (group.operator as "AND" | "OR") ?? "AND",
+        order: group.order ?? groupIndex,
+        conditions: group.conditions?.map((condition, conditionIndex) => ({
+          id: condition.id ?? `condition-${conditionIndex}`,
+          metric: condition.metric ?? "spend",
+          operator: condition.operator ?? "gt",
+          threshold: condition.threshold ?? 1000,
+          order: condition.order ?? conditionIndex,
+        })) ?? [{
+          id: "condition-1",
+          metric: "spend",
+          operator: "gt",
+          threshold: 1000,
+          order: 0,
+        }],
+      }))
+    }
+    return [{
       id: "group-1",
       operator: "AND",
       order: 0,
@@ -53,8 +94,8 @@ export function RuleBuilder({ onSave, onCancel }: RuleBuilderProps) {
           order: 0,
         },
       ],
-    },
-  ])
+    }]
+  })
 
   // Fetch available options
   const { data: metrics } = api.automation.getAvailableMetrics.useQuery()
@@ -115,7 +156,7 @@ export function RuleBuilder({ onSave, onCancel }: RuleBuilderProps) {
     )
   }
 
-  const updateCondition = (groupId: string, conditionId: string, field: keyof Condition, value: any) => {
+  const updateCondition = (groupId: string, conditionId: string, field: keyof Condition, value: string | number) => {
     setConditionGroups(
       conditionGroups.map((group) => {
         if (group.id === groupId) {
@@ -171,48 +212,13 @@ export function RuleBuilder({ onSave, onCancel }: RuleBuilderProps) {
 
     onSave({
       name: ruleName,
-      description: ruleDescription || undefined,
+      description: ruleDescription ?? undefined,
       action: selectedAction,
-      actionValue: actionValue || undefined,
+      actionValue: actionValue ?? undefined,
       conditionGroups,
     })
   }
 
-  const formatMetric = (metric: string) => {
-    const metricMap: Record<string, string> = {
-      spend: "Spend",
-      clicks: "Clicks",
-      reach: "Reach",
-      impressions: "Impressions",
-      inlineLinkClicks: "Link Clicks",
-      costPerInlineLinkClick: "Cost per Link Click",
-      frequency: "Frequency",
-      cpc: "Cost per Click",
-      ctr: "CTR",
-    }
-    return metricMap[metric] || metric
-  }
-
-  const formatOperator = (operator: string) => {
-    const operatorMap: Record<string, string> = {
-      gt: ">",
-      lt: "<",
-      eq: "=",
-      gte: "≥",
-      lte: "≤",
-    }
-    return operatorMap[operator] || operator
-  }
-
-  const formatAction = (action: string) => {
-    const actionMap: Record<string, string> = {
-      pause_campaign: "Pause Campaign",
-      increase_budget: "Increase Budget",
-      decrease_budget: "Decrease Budget",
-      send_notification: "Send Notification",
-    }
-    return actionMap[action] || action
-  }
 
   return (
     <div className="space-y-6">
@@ -337,7 +343,7 @@ export function RuleBuilder({ onSave, onCancel }: RuleBuilderProps) {
 
                 {/* Conditions */}
                 <div className="space-y-3">
-                  {group.conditions.map((condition, conditionIndex) => (
+                  {group.conditions.map((condition) => (
                     <div key={condition.id} className="flex items-center gap-3 p-3 border rounded-lg">
                       <GripVertical className="h-4 w-4 text-gray-400" />
 

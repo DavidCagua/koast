@@ -207,6 +207,17 @@ export const automationRouter = createTRPCRouter({
   deleteRule: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
+      // Delete related action logs first
+      await db.actionLog.deleteMany({
+        where: { ruleId: input.id },
+      })
+
+      // Delete condition groups and their conditions
+      await db.conditionGroup.deleteMany({
+        where: { ruleId: input.id },
+      })
+
+      // Now delete the rule
       await db.automationRule.delete({
         where: { id: input.id },
       })
