@@ -7,8 +7,9 @@
 Build a minimal web platform that allows a user to:
 
 - Monitor a Meta Ads campaign's performance
-- Set automation rules based on metrics like Spend, CTR, and Reach
-- Log mock actions when rules are triggered
+- Set automation rules with complex AND/OR logic
+- Automatically execute actions when rules are triggered
+- Log all automation actions for audit trail
 
 Uses the provided Meta Ads API proxy.
 
@@ -24,44 +25,76 @@ Display real-time metrics for the campaign, synced from the Meta Ads API proxy.
 #### Components:
 - `CampaignMetricsCard` – Display individual KPIs (spend, CTR, clicks, reach, impressions, etc.)
 - `LastSynced` – Show last time data was fetched
-- `SyncButton` – Optional manual refresh
+- `SyncButton` – Manual refresh with automatic rule execution
 
 #### Data Source:
 - `GET /api/campaigns` → pulls from DB
-- Cron job or manual `/api/sync` endpoint to update
+- `POST /api/sync` → updates from API + triggers rule evaluation
 
 ---
 
 ### `/automation` — ⚙️ Rules Manager
 
 #### Purpose:
-Create and manage automation rules that trigger mock actions.
+Create and manage complex automation rules with AND/OR logic that trigger mock actions.
 
 #### Components:
-- `RuleList` – Table of rules (Name, Condition, Action, Last Triggered, Active?)
-- `CreateRuleDialog` – Modal/form to create new rule
-- `RuleToggle` – (optional) Enable/disable rule
-- `ActionLogTable` – List of all triggered mock actions
+- `RuleBuilder` – Revealbot-style rule creation with condition groups
+- `AutomationRulesList` – Table of rules with complex condition display
+- `RuleTesting` – Test rules with mock campaign data
+- `ActionLogsList` – List of all triggered mock actions
 
 #### Data Source:
-- `GET /api/rules`
-- `POST /api/rules`
-- `GET /api/actions`
+- `GET /api/rules` → with condition groups and conditions
+- `POST /api/rules` → create complex rules
+- `POST /api/executeRules` → manual rule testing
 
 ---
 
 ## 🛠️ API Endpoints
 
-### `GET /api/campaigns`
-- Returns latest campaign metrics from DB
+### Campaign Management
+- `GET /api/campaigns` - Returns latest campaign metrics from DB
+- `POST /api/sync` - Fetch insights from Meta Ads API proxy + execute rules
 
-### `POST /api/sync`
-- Fetch insights from Meta Ads API proxy:
+### Rule Management
+- `GET /api/rules` - Get all rules with condition groups
+- `POST /api/rules` - Create new rule with complex conditions
+- `PUT /api/rules` - Update existing rule
+- `DELETE /api/rules` - Delete rule
+- `POST /api/toggleRule` - Enable/disable rule
+
+### Rule Testing
+- `POST /api/executeRules` - Test rules with mock campaign data
+
+### Action Logs
+- `GET /api/actionLogs` - Get triggered action history
+
+### Available Options
+- `GET /api/availableMetrics` - Get available campaign metrics
+- `GET /api/availableActions` - Get available automation actions
+- `GET /api/availableOperators` - Get comparison operators
+- `GET /api/availableGroupOperators` - Get AND/OR operators
+
+---
+
+## 🎯 Automation Rules Engine
+
+### Complex AND/OR Logic Support
+Rules can have multiple condition groups with AND/OR logic:
+
 ```
-GET https://dev-api.adcopy.ai/challenge-proxy/meta/120231398059670228/insights?fields=inline_link_clicks,cost_per_inline_link_click,reach,frequency,cpc,spend,clicks,impressions,ctr
+IF (spend > 1000 AND ctr < 0.02) OR (clicks > 500) THEN pause_campaign
+IF (reach > 10000 AND frequency > 2) AND (cpc > 1.5) THEN increase_budget
 ```
 
-#### Available Metrics:
+### Rule Structure
+- **Condition Groups**: Multiple groups connected by OR logic
+- **Conditions**: Individual metric comparisons within groups
+- **Group Operators**: AND/OR logic within each group
+- **Actions**: Mock actions executed when conditions are met
+
+### Available Metrics
 - `spend` - Total campaign spend
 - `clicks` - Total clicks
 - `reach` - Total reach
@@ -72,17 +105,189 @@ GET https://dev-api.adcopy.ai/challenge-proxy/meta/120231398059670228/insights?f
 - `cpc` - Cost per click
 - `ctr` - Click-through rate (from API)
 
-#### Automation Rules Supported:
-- **Spend** - Monitor total campaign spend
-- **Clicks** - Monitor total clicks
-- **Reach** - Monitor total reach
-- **Impressions** - Monitor total impressions
-- **CTR** - Monitor click-through rate
-- **CPC** - Monitor cost per click
-- **Frequency** - Monitor ad frequency
-- **Link Clicks** - Monitor inline link clicks
-- **Cost per Link Click** - Monitor cost per link click
+### Available Actions
+- `pause_campaign` - Pause the campaign
+- `increase_budget` - Increase campaign budget
+- `decrease_budget` - Decrease campaign budget
+- `send_notification` - Send notification
 
-#### Authentication:
-- Requires `META_API_TOKEN` environment variable
-- Uses Bearer token authentication
+### Available Operators
+- `gt` - Greater than (>)
+- `lt` - Less than (<)
+- `eq` - Equal to (=)
+- `gte` - Greater than or equal (≥)
+- `lte` - Less than or equal (≤)
+
+### Group Operators
+- `AND` - All conditions in group must be true
+- `OR` - Any condition in group can be true
+
+---
+
+## 🔄 Automatic Rule Execution
+
+### Execution Flow
+1. **Campaign Sync** - Data fetched from Meta Ads API
+2. **Rule Evaluation** - All active rules checked against current metrics
+3. **Condition Checking** - Complex AND/OR logic evaluated
+4. **Action Execution** - Mock actions executed when conditions met
+5. **Action Logging** - Complete audit trail with context
+6. **Statistics Update** - Rule trigger counts and timestamps updated
+
+### Rule Evaluation Engine
+- **Single Condition**: `spend > 1000`
+- **AND Group**: `(spend > 1000 AND ctr < 0.02)`
+- **OR Group**: `(clicks > 500 OR impressions > 10000)`
+- **Complex Logic**: `(spend > 1000 AND ctr < 0.02) OR (clicks > 500)`
+
+### Action Logging
+Each triggered action logs:
+- Rule that triggered it
+- Action executed
+- Campaign metrics at trigger time
+- Timestamp and status
+- Full context for audit trail
+
+---
+
+## 🎨 User Interface
+
+### Rule Builder (Revealbot-Style)
+- **Visual condition groups** with AND/OR toggles
+- **Drag-and-drop** style condition management
+- **Add/remove conditions** within groups
+- **Add/remove condition groups** for complex logic
+- **Real-time validation** and error handling
+- **Modal-based interface** for rule creation
+
+### Rule Testing Interface
+- **Mock campaign data** input
+- **Real-time rule testing** with custom metrics
+- **Immediate feedback** with toast notifications
+- **Scenario suggestions** for common test cases
+
+### Rule Display
+- **Complex condition visualization** showing AND/OR logic
+- **Rule statistics** (trigger count, last triggered)
+- **Action details** with values
+- **Status indicators** (active/inactive)
+
+---
+
+## 🗄️ Database Schema
+
+### Core Models
+- `Campaign` - Campaign metrics and sync data
+- `AutomationRule` - Rule definitions with actions
+- `ConditionGroup` - Groups of conditions with AND/OR logic
+- `Condition` - Individual metric comparisons
+- `ActionLog` - Complete audit trail of triggered actions
+- `User` - User management (NextAuth.js)
+
+### Relationships
+- `AutomationRule` → `ConditionGroup[]` (one-to-many)
+- `ConditionGroup` → `Condition[]` (one-to-many)
+- `AutomationRule` → `ActionLog[]` (one-to-many)
+- `Campaign` → `ActionLog[]` (one-to-many)
+
+---
+
+## 🔐 Authentication
+
+### NextAuth.js Integration
+- **Discord Provider** - OAuth authentication
+- **Prisma Adapter** - Database session management
+- **Protected Routes** - All automation features require auth
+
+---
+
+## 🚀 Technical Stack
+
+### Frontend
+- **Next.js 14** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first styling
+- **shadcn/ui** - Modern component library
+- **tRPC** - Type-safe API client
+
+### Backend
+- **tRPC** - End-to-end type safety
+- **Prisma** - Database ORM
+- **PostgreSQL** - Primary database
+- **NextAuth.js** - Authentication
+
+### External APIs
+- **Meta Ads API Proxy** - Campaign data source
+- **Bearer Token Authentication** - API security
+
+---
+
+## 🎯 Key Features Implemented
+
+### ✅ Complex Rule Logic
+- AND/OR condition groups
+- Multiple conditions per group
+- Visual rule builder interface
+- Real-time validation
+
+### ✅ Automatic Execution
+- Rule evaluation on campaign sync
+- Mock action execution
+- Complete action logging
+- Error handling and resilience
+
+### ✅ User Experience
+- Revealbot-style interface
+- Rule testing with mock data
+- Action history and audit trail
+- Toast notifications and feedback
+
+### ✅ Technical Excellence
+- Type-safe development with tRPC
+- Modern React patterns
+- Responsive design
+- Error handling and validation
+
+---
+
+## 🔮 Future Enhancements
+
+### Potential Improvements
+- **Real API Integration** - Connect to actual Meta Ads API
+- **Advanced Scheduling** - Time-based rule execution
+- **Email Notifications** - Action result notifications
+- **Rule Templates** - Pre-built common scenarios
+- **Performance Analytics** - Rule effectiveness metrics
+- **Multi-Campaign Support** - Manage multiple campaigns
+
+### Advanced Features
+- **Machine Learning** - Predictive rule suggestions
+- **A/B Testing** - Rule performance comparison
+- **Webhook Integration** - External system notifications
+- **Advanced Analytics** - Campaign performance insights
+
+---
+
+## 📋 Testing Scenarios
+
+### Rule Testing Examples
+1. **High Spend + Low CTR**: `spend > 1000 AND ctr < 0.02`
+2. **High Clicks + High CPC**: `clicks > 500 AND cpc > 2.0`
+3. **Low Reach + High Frequency**: `reach < 1000 AND frequency > 3.0`
+4. **Complex OR Logic**: `(spend > 1000 AND ctr < 0.02) OR (clicks > 500)`
+
+### Manual Testing
+- Use the "Test Rule Execution" component
+- Adjust mock campaign data
+- Verify action logs are created
+- Check rule statistics are updated
+
+### Automatic Testing
+- Sync campaign data from API
+- Verify rules are evaluated automatically
+- Check console logs for execution details
+- Monitor action logs for triggered actions
+
+---
+
+This specification represents a complete automation platform with advanced rule logic, automatic execution, and a modern user interface inspired by industry leaders like Revealbot.

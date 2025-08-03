@@ -8,11 +8,14 @@ import { toast } from "sonner"
 
 export function DashboardHeader() {
   const [isSyncing, setIsSyncing] = useState(false)
+  const utils = api.useUtils()
 
   // Sync mutation
   const syncMutation = api.campaign.sync.useMutation({
     onSuccess: () => {
       toast.success("Campaign data synced successfully!")
+      // Invalidate and refetch campaign data
+      utils.campaign.getLatest.invalidate()
     },
     onError: (error) => {
       toast.error(`Failed to sync: ${error.message}`)

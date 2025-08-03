@@ -2,6 +2,21 @@ import { z } from "zod"
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc"
 import { db } from "~/server/db"
 import { env } from "~/env"
+import { checkAndExecuteRules } from "~/lib/rule-evaluator"
+
+interface MetaAdsResponse {
+  data: Array<{
+    spend?: string
+    clicks?: string
+    reach?: string
+    impressions?: string
+    inline_link_clicks?: string
+    cost_per_inline_link_click?: string
+    frequency?: string
+    cpc?: string
+    ctr?: string
+  }>
+}
 
 export const campaignRouter = createTRPCRouter({
   // Get latest campaign data from database
@@ -37,7 +52,7 @@ export const campaignRouter = createTRPCRouter({
         throw new Error(`Failed to fetch campaign data: ${response.statusText} - ${errorText}`)
       }
 
-      const data = await response.json()
+      const data = await response.json() as MetaAdsResponse
       console.log("API Response:", data)
 
       // Extract the first data point (assuming it's an array)
@@ -51,15 +66,15 @@ export const campaignRouter = createTRPCRouter({
       const campaignData = {
         campaignId: "120231398059670228",
         name: "Meta Ads Campaign",
-        spend: parseFloat(insights.spend || "0"),
-        clicks: parseInt(insights.clicks || "0"),
-        reach: parseInt(insights.reach || "0"),
-        impressions: parseInt(insights.impressions || "0"),
-        inlineLinkClicks: parseInt(insights.inline_link_clicks || "0"),
-        costPerInlineLinkClick: parseFloat(insights.cost_per_inline_link_click || "0"),
-        frequency: parseFloat(insights.frequency || "0"),
-        cpc: parseFloat(insights.cpc || "0"),
-        ctr: parseFloat(insights.ctr || "0"),
+        spend: parseFloat(insights.spend ?? "0"),
+        clicks: parseInt(insights.clicks ?? "0"),
+        reach: parseInt(insights.reach ?? "0"),
+        impressions: parseInt(insights.impressions ?? "0"),
+        inlineLinkClicks: parseInt(insights.inline_link_clicks ?? "0"),
+        costPerInlineLinkClick: parseFloat(insights.cost_per_inline_link_click ?? "0"),
+        frequency: parseFloat(insights.frequency ?? "0"),
+        cpc: parseFloat(insights.cpc ?? "0"),
+        ctr: parseFloat(insights.ctr ?? "0"),
         syncedAt: new Date(),
       }
 
@@ -73,10 +88,23 @@ export const campaignRouter = createTRPCRouter({
         create: campaignData,
       })
 
+      console.log("✅ Campaign data synced successfully")
+
+      // Check and execute automation rules
+      console.log("🤖 Checking automation rules...")
+      const executedActions = await checkAndExecuteRules(campaignData, campaign.id)
+
+      if (executedActions.length > 0) {
+        console.log(`🎯 Executed ${executedActions.length} automation actions`)
+      } else {
+        console.log("📋 No automation rules triggered")
+      }
+
       return {
         success: true,
         campaign,
         syncedAt: new Date(),
+        executedActions: executedActions.length,
       }
     } catch (error) {
       console.error("Error syncing campaign data:", error)

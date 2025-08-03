@@ -3,15 +3,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
-import { Plus, Settings, Trash2, Edit, Play, Pause } from "lucide-react"
+import { Plus, Settings, Trash2, Edit, Play, Pause, Bell } from "lucide-react"
 import { api } from "~/trpc/react"
 import { toast } from "sonner"
 import { useState } from "react"
-import { CreateRuleDialog } from "~/app/(auth)/automation/components/create-rule-dialog"
 
 export function AutomationRulesList() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-
   // Fetch automation data
   const { data: rules, refetch: refetchRules } = api.automation.getRules.useQuery()
 
@@ -49,34 +46,6 @@ export function AutomationRulesList() {
     }
   }
 
-  // Format operator for display
-  const formatOperator = (operator: string) => {
-    const operators = {
-      gt: ">",
-      lt: "<",
-      eq: "=",
-      gte: "≥",
-      lte: "≤",
-    }
-    return operators[operator as keyof typeof operators] || operator
-  }
-
-  // Format metric for display
-  const formatMetric = (metric: string) => {
-    const metrics = {
-      spend: "Spend",
-      clicks: "Clicks",
-      reach: "Reach",
-      impressions: "Impressions",
-      inlineLinkClicks: "Link Clicks",
-      costPerInlineLinkClick: "Cost per Link Click",
-      frequency: "Frequency",
-      cpc: "Cost per Click",
-      ctr: "CTR",
-    }
-    return metrics[metric as keyof typeof metrics] || metric
-  }
-
   // Format action for display
   const formatAction = (action: string) => {
     const actions = {
@@ -93,15 +62,52 @@ export function AutomationRulesList() {
     return new Date(date).toLocaleString()
   }
 
+  // Format condition groups for display
+  const formatConditionGroups = (conditionGroups: any[]) => {
+    if (!conditionGroups || conditionGroups.length === 0) {
+      return "No conditions"
+    }
+
+    return conditionGroups.map((group, groupIndex) => {
+      const conditions = group.conditions?.map((condition: any) => {
+        const metricMap: Record<string, string> = {
+          spend: "Spend",
+          clicks: "Clicks",
+          reach: "Reach",
+          impressions: "Impressions",
+          inlineLinkClicks: "Link Clicks",
+          costPerInlineLinkClick: "Cost per Link Click",
+          frequency: "Frequency",
+          cpc: "Cost per Click",
+          ctr: "CTR",
+        }
+        const operatorMap: Record<string, string> = {
+          gt: ">",
+          lt: "<",
+          eq: "=",
+          gte: "≥",
+          lte: "≤",
+        }
+
+        return `${metricMap[condition.metric] || condition.metric} ${operatorMap[condition.operator] || condition.operator} ${condition.threshold}`
+      }).join(` ${group.operator} `)
+
+      return conditions
+    }).join(" OR ")
+  }
+
   return (
-    <>
+    <div className="space-y-6">
       <div className="grid gap-6">
         {rules?.map((rule) => (
           <Card key={rule.id}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <CardTitle className="text-lg">{rule.name}</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Bell className="h-5 w-5" />
+                    {rule.name}
+                  </CardTitle>
                   <Badge variant={rule.isActive ? "default" : "secondary"}>
                     {rule.isActive ? "Active" : "Inactive"}
                   </Badge>
@@ -139,14 +145,17 @@ export function AutomationRulesList() {
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Condition</p>
+                  <p className="text-sm font-medium text-muted-foreground">Conditions</p>
                   <p className="text-sm">
-                    {formatMetric(rule.metric)} {formatOperator(rule.operator)} {rule.threshold}
+                    {formatConditionGroups(rule.conditionGroups)}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Action</p>
                   <p className="text-sm">{formatAction(rule.action)}</p>
+                  {rule.actionValue && (
+                    <p className="text-xs text-muted-foreground">Value: {rule.actionValue}</p>
+                  )}
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Triggers</p>
@@ -171,7 +180,7 @@ export function AutomationRulesList() {
               <p className="text-muted-foreground text-center mb-4">
                 Create your first automation rule to automatically manage your campaigns based on performance metrics.
               </p>
-              <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Button>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Your First Rule
               </Button>
@@ -179,16 +188,6 @@ export function AutomationRulesList() {
           </Card>
         )}
       </div>
-
-      {/* Create Rule Dialog */}
-      <CreateRuleDialog
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-        onSuccess={() => {
-          setIsCreateDialogOpen(false)
-          utils.automation.getRules.invalidate()
-        }}
-      />
-    </>
+    </div>
   )
 }

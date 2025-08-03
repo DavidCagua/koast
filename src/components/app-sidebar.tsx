@@ -20,11 +20,6 @@ const items = [
     icon: BarChart3,
   },
   {
-    title: "Posts",
-    url: "/posts",
-    icon: FileText,
-  },
-  {
     title: "Automation",
     url: "/automation",
     icon: Settings,

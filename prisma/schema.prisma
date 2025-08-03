@@ -35,17 +35,12 @@ model Campaign {
     actionLogs  ActionLog[]
 }
 
-// Automation rules
+// Automation rules with complex AND/OR logic support
 model AutomationRule {
     id          String   @id @default(cuid())
     name        String
     description String?
     isActive    Boolean  @default(true)
-
-    // Rule conditions - only use available metrics
-    metric      String   // "spend", "clicks", "reach", "impressions", "inlineLinkClicks", "costPerInlineLinkClick", "frequency", "cpc", "ctr"
-    operator    String   // "gt", "lt", "eq", "gte", "lte"
-    threshold   Float
 
     // Rule actions
     action      String   // "pause_campaign", "increase_budget", "decrease_budget", "send_notification"
@@ -59,13 +54,54 @@ model AutomationRule {
     createdBy   User?   @relation(fields: [createdById], references: [id])
     createdById String?
     actionLogs  ActionLog[]
+    conditionGroups ConditionGroup[]
 
     // Timestamps
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
 
     @@index([isActive])
-    @@index([metric])
+}
+
+// Condition groups for AND/OR logic
+model ConditionGroup {
+    id        String   @id @default(cuid())
+    ruleId    String
+    rule      AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+    // Group logic
+    operator  String   // "AND" or "OR"
+    order     Int      // For ordering groups within a rule
+
+    // Conditions in this group
+    conditions Condition[]
+
+    // Timestamps
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([ruleId])
+    @@index([order])
+}
+
+// Individual conditions within a group
+model Condition {
+    id            String   @id @default(cuid())
+    groupId       String
+    group         ConditionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+    // Condition details
+    metric        String   // "spend", "clicks", "reach", "impressions", "inlineLinkClicks", "costPerInlineLinkClick", "frequency", "cpc", "ctr"
+    operator      String   // "gt", "lt", "eq", "gte", "lte"
+    threshold     Float
+    order         Int      // For ordering conditions within a group
+
+    // Timestamps
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([groupId])
+    @@index([order])
 }
 
 // Action logs when rules are triggered

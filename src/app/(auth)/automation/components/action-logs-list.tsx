@@ -2,11 +2,11 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
 import { Badge } from "~/components/ui/badge"
-import { Clock, Activity } from "lucide-react"
 import { api } from "~/trpc/react"
 
 export function ActionLogsList() {
-  const { data: actionLogs } = api.automation.getActionLogs.useQuery({ limit: 10 })
+  // Fetch action logs
+  const { data: logs } = api.automation.getActionLogs.useQuery({ limit: 10 })
 
   // Format action for display
   const formatAction = (action: string) => {
@@ -19,6 +19,16 @@ export function ActionLogsList() {
     return actions[action as keyof typeof actions] || action
   }
 
+  // Format status for display
+  const formatStatus = (status: string) => {
+    const statusMap = {
+      pending: { label: "Pending", variant: "secondary" as const },
+      success: { label: "Success", variant: "default" as const },
+      failed: { label: "Failed", variant: "destructive" as const },
+    }
+    return statusMap[status as keyof typeof statusMap] || { label: status, variant: "secondary" as const }
+  }
+
   // Format date
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleString()
@@ -27,44 +37,41 @@ export function ActionLogsList() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Activity className="h-5 w-5" />
-          Recent Action Logs
-        </CardTitle>
+        <CardTitle>Recent Actions</CardTitle>
         <CardDescription>
-          Latest automation rule triggers and their results
+          Latest automation actions triggered by your rules
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {actionLogs?.map((log) => (
-            <div key={log.id} className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col">
-                  <p className="font-medium">{log.rule.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatAction(log.action)} - {log.campaign.name}
-                  </p>
+        {logs && logs.length > 0 ? (
+          <div className="space-y-3">
+            {logs.map((log) => (
+              <div key={log.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div>
+                    <p className="font-medium">{formatAction(log.action)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Rule: {log.rule.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDate(log.triggeredAt)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <Badge variant={log.status === "success" ? "default" : "destructive"}>
-                  {log.status}
+                <Badge variant={formatStatus(log.status).variant}>
+                  {formatStatus(log.status).label}
                 </Badge>
-                <div className="text-sm text-muted-foreground">
-                  {formatDate(log.triggeredAt)}
-                </div>
               </div>
-            </div>
-          ))}
-
-          {actionLogs?.length === 0 && (
-            <div className="text-center py-8">
-              <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-muted-foreground">No action logs yet</p>
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No action logs yet</p>
+            <p className="text-sm text-muted-foreground">
+              Actions will appear here when your automation rules are triggered
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

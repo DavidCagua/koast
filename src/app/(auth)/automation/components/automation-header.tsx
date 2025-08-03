@@ -3,10 +3,37 @@
 import { Button } from "~/components/ui/button"
 import { Plus } from "lucide-react"
 import { useState } from "react"
-import { CreateRuleDialog } from "~/app/(auth)/automation/components/create-rule-dialog"
+import { RuleBuilder } from "./rule-builder"
+import { api } from "~/trpc/react"
+import { toast } from "sonner"
 
 export function AutomationHeader() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isRuleBuilderOpen, setIsRuleBuilderOpen] = useState(false)
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils()
+
+  // Create rule mutation
+  const createRuleMutation = api.automation.createRule.useMutation({
+    onSuccess: () => {
+      toast.success("Rule created successfully!")
+      utils.automation.getRules.invalidate()
+      setIsRuleBuilderOpen(false)
+    },
+    onError: (error) => {
+      toast.error(`Failed to create rule: ${error.message}`)
+    },
+  })
+
+  const handleSaveRule = async (ruleData: {
+    name: string
+    description?: string
+    action: string
+    actionValue?: string
+    conditionGroups: any[]
+  }) => {
+    await createRuleMutation.mutateAsync(ruleData)
+  }
 
   return (
     <>
@@ -17,20 +44,22 @@ export function AutomationHeader() {
             Create and manage automation rules for your campaigns
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
+        <Button onClick={() => setIsRuleBuilderOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Create Rule
         </Button>
       </div>
 
-      <CreateRuleDialog
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-        onSuccess={() => {
-          setIsCreateDialogOpen(false)
-          // The rules list will automatically refetch due to tRPC cache invalidation
-        }}
-      />
+      {isRuleBuilderOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <RuleBuilder
+              onSave={handleSaveRule}
+              onCancel={() => setIsRuleBuilderOpen(false)}
+            />
+          </div>
+        </div>
+      )}
     </>
   )
 }
