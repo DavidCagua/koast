@@ -56,8 +56,8 @@ model AutomationRule {
     triggerCount  Int      @default(0)
 
     // Relations
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
+    createdBy   User?   @relation(fields: [createdById], references: [id])
+    createdById String?
     actionLogs  ActionLog[]
 
     // Timestamps
