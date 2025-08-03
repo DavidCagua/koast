@@ -259,10 +259,7 @@ Each triggered action logs:
 
 ## 🔐 Authentication
 
-### NextAuth.js Integration
-- **Discord Provider** - OAuth authentication
-- **Prisma Adapter** - Database session management
-- **Protected Routes** - All automation features require auth
+### NextAuth.js Integration, not yet integrated
 
 ---
 
