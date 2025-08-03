@@ -26,6 +26,7 @@ Display real-time metrics for the campaign, synced from the Meta Ads API proxy.
 - `CampaignMetricsCard` – Display individual KPIs (spend, CTR, clicks, reach, impressions, etc.)
 - `LastSynced` – Show last time data was fetched
 - `SyncButton` – Manual refresh with automatic rule execution
+- **Auto-Sync** – Automatically syncs data when entering dashboard (once per session)
 
 #### Data Source:
 - `GET /api/campaigns` → pulls from DB
@@ -134,6 +135,24 @@ IF (reach > 10000 AND frequency > 2) AND (cpc > 1.5) THEN increase_budget
 5. **Action Logging** - Complete audit trail with context
 6. **Statistics Update** - Rule trigger counts and timestamps updated
 
+## ⏰ Automatic Campaign Data Tracking
+
+### Scheduled Sync
+- **Frequency**: Every 15 minutes
+- **Smart Deduplication**: Skips if recent data exists (within 10 minutes)
+- **Error Handling**: Comprehensive logging and error recovery
+- **Environment Control**: Enable/disable via `ENABLE_CRON` environment variable
+
+### Manual Control
+- **API Endpoints**: Start/stop/trigger sync via tRPC
+- **Status Monitoring**: Real-time service status
+- **Manual Trigger**: Immediate sync on demand
+
+### Implementation
+- **Shared Sync Service**: Reusable sync logic across cron and manual triggers
+- **Cron Service**: Background job management with `node-cron`
+- **Database Integration**: Automatic rule execution on data updates
+
 ### Rule Evaluation Engine
 - **Single Condition**: `spend > 1000`
 - **AND Group**: `(spend > 1000 AND ctr < 0.02)`
@@ -235,6 +254,7 @@ Each triggered action logs:
 - Mock action execution
 - Complete action logging
 - Error handling and resilience
+- **Automatic Campaign Data Tracking** - Scheduled sync every 15 minutes
 
 ### ✅ User Experience
 - Revealbot-style interface
@@ -259,6 +279,7 @@ Each triggered action logs:
 - **Rule Templates** - Pre-built common scenarios
 - **Performance Analytics** - Rule effectiveness metrics
 - **Multi-Campaign Support** - Manage multiple campaigns
+- **Cron Service Management** - Web interface for cron control
 
 ### Advanced Features
 - **Machine Learning** - Predictive rule suggestions

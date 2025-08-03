@@ -15,6 +15,7 @@ export const env = createEnv({
     AUTH_DISCORD_SECRET: z.string(),
     DATABASE_URL: z.string().url(),
     META_API_TOKEN: z.string().optional(),
+    ENABLE_CRON: z.string().optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -39,6 +40,7 @@ export const env = createEnv({
     AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
     META_API_TOKEN: process.env.META_API_TOKEN,
+    ENABLE_CRON: process.env.ENABLE_CRON,
     NODE_ENV: process.env.NODE_ENV,
   },
   /**

@@ -4,6 +4,7 @@ import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
+import { initializeCron } from "~/lib/init-cron";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -19,6 +20,9 @@ const geist = Geist({
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Initialize cron service
+  initializeCron();
+
   return (
     <html lang="en" className={`${geist.variable}`}>
       <body>

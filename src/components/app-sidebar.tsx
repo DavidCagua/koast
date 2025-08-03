@@ -1,4 +1,4 @@
-import { Home, FileText, Settings, BarChart3 } from "lucide-react"
+import { Settings, BarChart3 } from "lucide-react"
 
 import {
   Sidebar,
