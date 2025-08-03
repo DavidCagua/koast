@@ -16,6 +16,7 @@ export const env = createEnv({
     DATABASE_URL: z.string().url(),
     META_API_TOKEN: z.string().optional(),
     ENABLE_CRON: z.string().optional(),
+    OPENAI_API_KEY: z.string().optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -41,6 +42,7 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     META_API_TOKEN: process.env.META_API_TOKEN,
     ENABLE_CRON: process.env.ENABLE_CRON,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     NODE_ENV: process.env.NODE_ENV,
   },
   /**

@@ -10,6 +10,7 @@ Build a minimal web platform that allows a user to:
 - Set automation rules with complex AND/OR logic
 - Automatically execute actions when rules are triggered
 - Log all automation actions for audit trail
+- **AI-Powered Assistant** - Intelligent chat agent with access to real campaign data
 
 Uses the provided Meta Ads API proxy.
 
@@ -52,6 +53,41 @@ Create and manage complex automation rules with AND/OR logic that trigger mock a
 
 ---
 
+## 🤖 AI Agent
+
+### **Koast AI Assistant** - Intelligent Chat Widget
+
+#### Purpose:
+Provide users with an AI-powered assistant that can access real campaign data, automation rules, and action logs through natural language conversations.
+
+#### Capabilities:
+- **Campaign Performance Analysis** - Access real-time campaign metrics
+- **Automation Rules Management** - View and understand automation rules
+- **Action Logs Review** - Check recent automation actions
+- **Data Sync Control** - Manually trigger campaign data sync
+- **Contextual Insights** - Provide actionable recommendations
+
+#### Tools Available:
+1. **`getCampaignData`** - Fetch latest campaign performance metrics
+2. **`getAutomationRules`** - Retrieve all automation rules with conditions
+3. **`getActionLogs`** - Get recent automation action history
+4. **`syncCampaignData`** - Manually trigger campaign data sync
+
+#### Example Interactions:
+- "How is my campaign performing?"
+- "Show me my automation rules"
+- "What actions were triggered recently?"
+- "Sync my campaign data"
+- "Analyze my CTR and suggest improvements"
+
+#### Technical Implementation:
+- **Vercel AI SDK** - Streaming responses with tool calling
+- **OpenAI GPT-4o** - Advanced language model
+- **Real-time Data Access** - Direct database queries through tools
+- **Streaming UI** - Real-time typing indicators and responses
+
+---
+
 ## 🛠️ API Endpoints
 
 ### Campaign Management
@@ -76,6 +112,9 @@ Create and manage complex automation rules with AND/OR logic that trigger mock a
 - `GET /api/availableActions` - Get available automation actions
 - `GET /api/availableOperators` - Get comparison operators
 - `GET /api/availableGroupOperators` - Get AND/OR operators
+
+### AI Agent
+- `POST /api/chat` - AI chat endpoint with tool calling capabilities
 
 ---
 
@@ -191,6 +230,13 @@ Each triggered action logs:
 - **Action details** with values
 - **Status indicators** (active/inactive)
 
+### AI Chat Widget
+- **Floating Interface** - Always accessible chat widget
+- **Streaming Responses** - Real-time AI responses with typing indicators
+- **Tool Integration** - Access to real campaign data and automation rules
+- **Contextual Help** - Platform-specific guidance and insights
+- **Professional UI** - Modern chat interface with message history
+
 ---
 
 ## 🗄️ Database Schema
@@ -228,16 +274,19 @@ Each triggered action logs:
 - **Tailwind CSS** - Utility-first styling
 - **shadcn/ui** - Modern component library
 - **tRPC** - Type-safe API client
+- **Vercel AI SDK** - AI-powered chat interface
 
 ### Backend
 - **tRPC** - End-to-end type safety
 - **Prisma** - Database ORM
 - **PostgreSQL** - Primary database
 - **NextAuth.js** - Authentication
+- **OpenAI API** - AI language model integration
 
 ### External APIs
 - **Meta Ads API Proxy** - Campaign data source
 - **Bearer Token Authentication** - API security
+- **OpenAI GPT-4o** - Advanced AI capabilities
 
 ---
 
@@ -261,14 +310,42 @@ Each triggered action logs:
 - Rule testing with mock data
 - Action history and audit trail
 - Toast notifications and feedback
+- **AI-Powered Assistant** - Intelligent chat with real data access
 
 ### ✅ Technical Excellence
 - Type-safe development with tRPC
 - Modern React patterns
 - Responsive design
 - Error handling and validation
+- **Streaming AI Responses** - Real-time chat experience
 
 ---
+
+## 🤖 AI Agent Features
+
+### Intelligent Data Access
+- **Real Campaign Data** - Access to live campaign metrics
+- **Automation Rules** - View and understand rule configurations
+- **Action History** - Review recent automation activities
+- **Data Sync Control** - Manual campaign data synchronization
+
+### Natural Language Interface
+- **Conversational AI** - Natural language queries and responses
+- **Context Awareness** - Understands platform-specific terminology
+- **Actionable Insights** - Provides recommendations and analysis
+- **Streaming Responses** - Real-time typing indicators and responses
+
+### Tool Integration
+- **Campaign Analysis** - "How is my campaign performing?"
+- **Rule Management** - "Show me my automation rules"
+- **Action Monitoring** - "What actions were triggered recently?"
+- **Data Control** - "Sync my campaign data"
+
+### Professional Experience
+- **Floating Widget** - Always accessible chat interface
+- **Message History** - Persistent conversation context
+- **Tool Call Visualization** - Transparent tool usage display
+- **Error Handling** - Graceful error messages and recovery
 
 ## 🔮 Future Enhancements
 
@@ -280,12 +357,14 @@ Each triggered action logs:
 - **Performance Analytics** - Rule effectiveness metrics
 - **Multi-Campaign Support** - Manage multiple campaigns
 - **Cron Service Management** - Web interface for cron control
+- **Advanced AI Features** - File uploads, rich media, voice messages
 
 ### Advanced Features
 - **Machine Learning** - Predictive rule suggestions
 - **A/B Testing** - Rule performance comparison
 - **Webhook Integration** - External system notifications
 - **Advanced Analytics** - Campaign performance insights
+- **AI-Powered Insights** - Automated performance analysis and recommendations
 
 ---
 
@@ -309,6 +388,13 @@ Each triggered action logs:
 - Check console logs for execution details
 - Monitor action logs for triggered actions
 
+### AI Agent Testing
+- Ask about campaign performance
+- Request automation rule information
+- Check recent action logs
+- Test data sync functionality
+- Verify streaming responses work correctly
+
 ---
 
-This specification represents a complete automation platform with advanced rule logic, automatic execution, and a modern user interface inspired by industry leaders like Revealbot.
+This specification represents a complete automation platform with advanced rule logic, automatic execution, AI-powered assistance, and a modern user interface inspired by industry leaders like Revealbot.
