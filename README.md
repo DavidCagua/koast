@@ -68,6 +68,8 @@ ENABLE_CRON="true"
 
 ### 4. Start the Database
 
+**Prerequisites:** Make sure you have [Docker](https://www.docker.com/) installed and running on your system.
+
 Run the database setup script:
 
 ```bash
@@ -205,4 +207,4 @@ This project is licensed under the MIT License.
 
 ## 🆘 Support
 
-For support, please open an issue on GitHub or contact the development team.
+For support, please open an issue on GitHub or contact dfcaguazango@gmail.com.
